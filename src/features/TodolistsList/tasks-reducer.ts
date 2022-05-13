@@ -8,21 +8,18 @@ import {addTodolist, removeTodolist, setTodolists} from './todolists-reducer';
 
 const initialState: TasksStateType = {}
 
-export const fetchTasks = createAsyncThunk('tasks/fetchTasks', (todolistId: string, thunkAPI) => {
+export const fetchTasks = createAsyncThunk('tasks/fetchTasks', async (todolistId: string, thunkAPI) => {
     thunkAPI.dispatch(setAppStatus({status: 'loading'}))
-    return todolistsAPI.getTasks(todolistId)
-        .then((res) => {
-            const tasks = res.data.items
-            // thunkAPI.dispatch(setTasksAC({tasks, todolistId}))
-            thunkAPI.dispatch(setAppStatus({status: 'succeeded'}))
-            return {tasks, todolistId}
-        })
-} )
+    const res = await todolistsAPI.getTasks(todolistId)
+    const tasks = res.data.items
+    thunkAPI.dispatch(setAppStatus({status: 'succeeded'}))
+    return {tasks, todolistId}
+})
 
-export const removeTaskTC = createAsyncThunk('tasks/removeTask', (param: {taskId: string, todolistId: string}, thunkAPI) => {
-    return todolistsAPI.deleteTask(param.todolistId, param.taskId)
-        .then((res) => ({taskId: param.taskId, todolistId: param.todolistId}))
-} )
+export const removeTaskTC = createAsyncThunk('tasks/removeTask', async (param: { taskId: string, todolistId: string }, thunkAPI) => {
+    const res = await todolistsAPI.deleteTask(param.todolistId, param.taskId)
+    return {taskId: param.taskId, todolistId: param.todolistId}
+})
 
 const slice = createSlice({
     name: 'tasks',
@@ -34,7 +31,7 @@ const slice = createSlice({
         updateTaskAC(state, action: PayloadAction<{ taskId: string, model: UpdateDomainTaskModelType, todolistId: string }>) {
             const index = state[action.payload.todolistId].findIndex(t => t.id === action.payload.taskId)
             if (index > -1) {
-            state[action.payload.todolistId][index] = { ... state[action.payload.todolistId][index], ...action.payload.model}
+                state[action.payload.todolistId][index] = {...state[action.payload.todolistId][index], ...action.payload.model}
             }
         },
     },
